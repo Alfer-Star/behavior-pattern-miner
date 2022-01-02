@@ -1,2 +1,2 @@
 # behavior-pattern-miner
-Anwendug behavior Pattern Mining
+Anwendung Behavior Pattern Mining
