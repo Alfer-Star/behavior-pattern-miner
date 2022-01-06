@@ -14,9 +14,12 @@ log = xes_importer.apply(path)
 net, initial_marking, final_marking = pnml_importer.apply(os.path.join("output/petri_net_full.pnml"))
 
 from pm4py.algo.conformance.alignments.decomposed import algorithm as decomp_alignments
+index = 0
 
-aligned_traces = decomp_alignments.apply(log, net, initial_marking, initial_marking, parameters={decomp_alignments.Variants.RECOMPOS_MAXIMAL.value.Parameters.PARAM_THRESHOLD_BORDER_AGREEMENT: 5})
 
-f = open('output/aligned_traces.json', 'w')
+filtered_log = pm4py.filter_case_size(log, 39,41)
+aligned_traces = decomp_alignments.apply(filtered_log, net, initial_marking, initial_marking, parameters={decomp_alignments.Variants.RECOMPOS_MAXIMAL.value.Parameters.PARAM_THRESHOLD_BORDER_AGREEMENT: 5})
+
+f = open('output/aligned_traces_copy.json', 'w')
 json_string = json.dump(aligned_traces, f)
 f.close()
