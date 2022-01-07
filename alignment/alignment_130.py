@@ -10,15 +10,16 @@ import json
 
 variantIM = inductive_miner.Variants.IMf
 
-path = "datasets/02_TestCompletedFFF_onlyTaskItems_simpleFilter.xes"
+path = "../datasets/02_TestCompletedFFF_onlyTaskItems_simpleFilter.xes"
 # path = "datasets/01_TestCompletedFFF_IDtoString_removeTransitionClassifier.xes"
 log = xes_importer.apply(path)
-filtered_log = pm4py.filter_case_size(log, 0, 300)
+log = pm4py.filter_case_size(log, 0, 300)
+filtered_log = pm4py.filter_case_size(log, 131, 150)
 
 net, initial_marking, final_marking = inductive_miner.apply(log,variant=variantIM)
 
 aligned_traces = alignments.apply_log(filtered_log, net, initial_marking, final_marking)
 
-f = open('output/aligned_traces.json', 'w')
+f = open('output/aligned_traces_130.json', 'w')
 json_string = json.dump(aligned_traces, f)
 f.close()
