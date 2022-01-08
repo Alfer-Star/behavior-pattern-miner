@@ -8,12 +8,12 @@ def getCostFunctionParameter(net: PetriNet):
         # if the label is not None, we have a visible transition
         if t.label is not None:
         # associate cost 1000 to each move-on-model associated to visible transitions
-            model_cost_function[t] = 1000
+            model_cost_function[t] = 1
             # associate cost 0 to each move-on-log
-            sync_cost_function[t] = 0
+            sync_cost_function[t] = 1
         else:
         # associate cost 1 to each move-on-model associated to hidden transitions
-            model_cost_function[t] = 1
+            model_cost_function[t] = 0
 
     parameters = {}
     parameters[alignments.Variants.VERSION_STATE_EQUATION_A_STAR.value.Parameters.PARAM_MODEL_COST_FUNCTION] = model_cost_function
