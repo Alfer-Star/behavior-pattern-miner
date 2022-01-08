@@ -19,7 +19,11 @@ filtered_log = pm4py.filter_case_size(log, 131, 150)
 
 net, initial_marking, final_marking = inductive_miner.apply(log,variant=variantIM)
 
-aligned_traces = alignments.apply_log(filtered_log, net, initial_marking, final_marking)
+from custom_cost_function import getCostFunctionParameter
+parameters = getCostFunctionParameter(net)
+
+aligned_traces = alignments.apply_log(filtered_log, net, initial_marking, final_marking, parameters=parameters)
+
 
 f = open('output/aligned_traces_130.json', 'w')
 json_string = json.dump(aligned_traces, f)
