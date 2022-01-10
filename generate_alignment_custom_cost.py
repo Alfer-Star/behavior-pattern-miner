@@ -21,6 +21,7 @@ def generateAlignmentInFilteredParts(log, minValue, maxValue, net, initial_marki
     parameters = getCostFunctionParameter(net)
     if(classifier != None):
         parameters[alignments.Variants.VERSION_STATE_EQUATION_A_STAR.value.Parameters.ACTIVITY_KEY] = customClassifierDivision
+        parameters[inductive_miner.Variants.IMf.value.Parameters.ACTIVITY_KEY] = customClassifierDivision
     aligned_traces = alignments.apply_log(filtered_log, net, initial_marking, final_marking, parameters=parameters)
 
     f = open('output/custom_cost_alignment/aligned_traces_'+ str(minValue-1)+ '.json', 'w')
