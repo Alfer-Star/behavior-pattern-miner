@@ -35,7 +35,7 @@ log = pm4py.filter_case_size(log, 0, 300)
 
 addDivisionClassifier(log, customClassifierDivision)
 
-net, initial_marking, final_marking = pnml_importer.apply(os.path.join("/output/petri_net_division_name.pnml"))
+net, initial_marking, final_marking = pnml_importer.apply(os.path.join("output/petri_net_division_name.pnml"))
 
 minMaxList = [(1,70), (71,100), (101,130), (131,150), (151, 180), (181, 220), (221, 300)]
 for minValue, maxValue in minMaxList: 
