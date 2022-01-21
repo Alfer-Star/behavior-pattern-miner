@@ -1,4 +1,4 @@
-from conformance_with_alignment import sortLogAndModelMove
+from src.conformance_with_alignment import sortLogAndModelMove
 
 from pm4py.objects.petri_net.obj import PetriNet
 from pm4py.objects.log.obj import EventLog

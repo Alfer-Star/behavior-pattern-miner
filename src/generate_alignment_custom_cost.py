@@ -4,10 +4,10 @@ from pm4py.objects.petri_net.importer import importer as pnml_importer
 from pm4py.objects.log.importer.xes import importer as xes_importer
 from pm4py.algo.discovery.inductive import algorithm as inductive_miner
 
-from alignment_custom_cost.custom_cost_function import getCostFunctionParameter
+from src.custom_cost_function import getCostFunctionParameter
 
-from log_classifier_helper import addDivisionClassifier
-from log_classifier_helper import addRessourceClassifier
+from src.log_classifier_helper import addDivisionClassifier
+from src.log_classifier_helper import addRessourceClassifier
 
 
 import os
