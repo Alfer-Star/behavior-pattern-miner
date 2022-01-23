@@ -48,29 +48,33 @@ def repairInsertedEvent(edges_:set[tuple], insertedEventName, trace:Trace, index
 
 def repairDeletionEvent(nodes: set, edges_:set[tuple], deletionEventName, CR):
     # cs where CasualPredecessor in Nodes and smallest depth (nearest predecessor)
-    correspondingCR = {cr for cr in CR if cr[1]==deletionEventName and cr[0] in nodes }
-    assert(correspondingCR)
-    """minDepth = min(correspondingCR, key= lambda sc:sc[2])[2]
-    assert(minDepth>0) """
-    casualPredecessor= {cr[0] for cr in correspondingCR if cr[2] == 0}
+    deletedEventHasCR = any({ cr[0]==deletionEventName or cr[1]==deletionEventName for cr in CR })
+    correspondingPreCR = {cr for cr in CR if cr[1]==deletionEventName and cr[0] in nodes }
+    casualPredecessor= {cr[0] for cr in correspondingPreCR if cr[2] == 0}
     depthIndex = 1
-    while(casualPredecessor and depthIndex < 30):
-        casualPredecessor = {cr[0] for cr in correspondingCR if cr[2] == depthIndex}
+    while(casualPredecessor):
+        casualPredecessor = {cr[0] for cr in correspondingPreCR if cr[2] == depthIndex}
         depthIndex += 1
+        if(depthIndex < 1000):
+            print('Repair break loop, after 1000  failed iterations')
 
      # cs where CasualSuccessor in Nodes and smallest depth (nearest successor )
-    correspondingCR = {cr for cr in CR  if cr[0]== deletionEventName and cr[1] in nodes}
-    assert(correspondingCR)
-    casualSuccessor = {cr[0] for cr in correspondingCR if cr[2]<= 0}
+    correspondingSucCR = {cr for cr in CR  if cr[0]== deletionEventName and cr[1] in nodes}
+    casualSuccessor = {cr[0] for cr in correspondingSucCR if cr[2]<= 0}
     depthIndex = 1
-    while(casualPredecessor and depthIndex < 30):
-        casualPredecessor = {cr[0] for cr in correspondingCR if cr[2]<= depthIndex}
+    while(casualPredecessor):
+        casualPredecessor = {cr[0] for cr in correspondingSucCR if cr[2]<= depthIndex}
         depthIndex += 1
+        if(depthIndex < 1000):
+            print('Repair break loop, after 1000  failed iterations')
     try:
+        assert(correspondingPreCR or not deletedEventHasCR )
+        assert(correspondingSucCR  or not deletedEventHasCR )
         assert(len(casualSuccessor)>0 and len(casualPredecessor)>0)
     except:
-        print('length relevant CR', len())
         print("Kann keine Kanten für deletion hinzufügen!", deletionEventName)
+        print('correspondingPreCR', correspondingPreCR)
+        print('correspondingSucCR', correspondingSucCR)
         print('casualSuccessor: '+ str(len(casualSuccessor)))
         print('casualPredecessor: '+ str(len(casualPredecessor)))
     addingEdges = {(source, target) for source in casualPredecessor  for target in casualSuccessor}

@@ -3,6 +3,8 @@ from src.subgraph_mining import formatToSubdueGraphShema
 from src.subgraph_mining import writeSubDueInputFile
 
 import subprocess
+from tqdm import tqdm
+
 
 def calcBehaviorPattern(instanceGraphsDict, k):
     """ 
@@ -25,7 +27,7 @@ def calcBehaviorPattern(instanceGraphsDict, k):
     inputFile = open(g2Path, 'a')
     subdue_output_Lines = subdueOutputFile.readlines()
     passedFirstSubgraph = False
-    for line in subdue_output_Lines:
+    for line in tqdm(subdue_output_Lines):
         if(not passedFirstSubgraph and line.startswith('S')):
             passedFirstSubgraph = True
         elif(not line.startswith('S')):
