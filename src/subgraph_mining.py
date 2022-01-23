@@ -52,23 +52,17 @@ def writeSubDueInputFile(variant, subdueGraphNodes, subdueGraphEdges, filepath: 
     f.write("\n")
     f.close()
 
-def computeSubgraphsFromInstanceGraphs(instanceGraphsDict: dict, filepath = 'output/subdueGraphs'):
+def createSubdueInputFile(instanceGraphsDict: dict, filepath = 'output/subdueGraphs.g'):
 
     # overwrite bestehenden Inhalt
-    f = open(filepath+".g", "w")
+    f = open(filepath, "w")
     f.write("")
     f.close()
 
-    # create SubDueGraph
+    # create SubDueGraphFile
     for key, instanceGraph in instanceGraphsDict.items():
         subdueGraphNodes, subdueGraphEdges = formatToSubdueGraphShema(instanceGraph[0], instanceGraph[1])
         writeSubDueInputFile(key, subdueGraphNodes, subdueGraphEdges, filepath)
-    
-    # subrpocesss to call bash commands, from here: https://unix.stackexchange.com/questions/190495/how-to-execute-a-bash-command-in-a-python-script
-    outputFilePath = 'output/output-subdue'
-    subprocess.check_output(['/home/adrian/Schreibtisch/behavior-pattern-miner/subdue-5.2.2/bin/subdue','-eval','1', '-iterations', '0', '-overlap', '-out', outputFilePath, '/home/adrian/Schreibtisch/behavior-pattern-miner/output/subdueGraphs.g'])
-    
-    return outputFilePath
 
 
 def getSubGraphs(filepath = 'output/output-subdue')->list:

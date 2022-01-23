@@ -43,7 +43,7 @@ def calcBehaviorPattern(instanceGraphsDict, k):
 
     return behaviorPattern
 
-def checkSubgraphBehaviorPattern(instanceGraphsDict: dict, fileWithSubgraph: str, k: int)-> bool: 
+def checkSubgraphBehaviorPattern(instanceGraphsDict: dict, filePathWithSubgraph: str, k: int)-> bool: 
     g1Path = 'output/input-g1-mdl'
     for variant,instanceGraph in instanceGraphsDict.items():
         ## Create g1: graph
@@ -53,7 +53,7 @@ def checkSubgraphBehaviorPattern(instanceGraphsDict: dict, fileWithSubgraph: str
         file.close()
         writeSubDueInputFile(variant, subdueGraphNodes, subdueGraphEdges, g1Path, '')
 
-        output =subprocess.check_output(['/home/adrian/Schreibtisch/behavior-pattern-miner/subdue-5.2.2/bin/mdl', '/home/adrian/Schreibtisch/behavior-pattern-miner/' + fileWithSubgraph, '/home/adrian/Schreibtisch/behavior-pattern-miner/' + g1Path + '.g'])
+        output =subprocess.check_output(['/home/adrian/Schreibtisch/behavior-pattern-miner/subdue-5.2.2/bin/mdl_custom', '/home/adrian/Schreibtisch/behavior-pattern-miner/' + filePathWithSubgraph, '/home/adrian/Schreibtisch/behavior-pattern-miner/' + g1Path + '.g'])
         compressionValue = float(output.decode('utf-8').rstrip().split('\n')[-1].split(' ')[-1])
         if 1/compressionValue > k:
             return True
