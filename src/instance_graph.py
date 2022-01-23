@@ -48,7 +48,8 @@ def repairInsertedEvent(edges_:set[tuple], insertedEventName, trace:Trace, index
 
 def repairDeletionEvent(nodes: set, edges_:set[tuple], deletionEventName, CR):
     # cs where CasualPredecessor in Nodes and smallest depth (nearest predecessor)
-    correspondingCR = {cr for cr in CR if cr[0] in nodes and cr[1]==deletionEventName}
+    correspondingCR = {cr for cr in CR if cr[1]==deletionEventName and cr[0] in nodes }
+    assert(correspondingCR)
     """minDepth = min(correspondingCR, key= lambda sc:sc[2])[2]
     assert(minDepth>0) """
     casualPredecessor= {cr[0] for cr in correspondingCR if cr[2] == 0}
@@ -59,6 +60,7 @@ def repairDeletionEvent(nodes: set, edges_:set[tuple], deletionEventName, CR):
 
      # cs where CasualSuccessor in Nodes and smallest depth (nearest successor )
     correspondingCR = {cr for cr in CR  if cr[0]== deletionEventName and cr[1] in nodes}
+    assert(correspondingCR)
     casualSuccessor = {cr[0] for cr in correspondingCR if cr[2]<= 0}
     depthIndex = 1
     while(casualPredecessor and depthIndex < 30):
