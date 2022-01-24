@@ -1,5 +1,6 @@
 import subprocess
 
+
 def formatToSubdueGraphShema(nodes: set, edges: set):
     """ 
     Formats my Graph shema into Sudbue 5.2.2 redable shema
@@ -27,21 +28,23 @@ def formatToSubdueGraphShema(nodes: set, edges: set):
     subdueGraphEdges = list()
     nodes = list(nodes)
     for index in range(len(nodes)):
-        graphIndex = index +1
+        graphIndex = index + 1
         subdueGraphNodesDict[nodes[index]] = graphIndex
-        # replace " in strings because it used in fileFormat 
-        subdueGraphNodes.append('v ' + str(graphIndex)+ ' "' + nodes[index].replace('"',"'")  + '"')
+        # replace " in strings because it used in fileFormat
+        subdueGraphNodes.append(
+            'v ' + str(graphIndex) + ' "' + nodes[index].replace('"', "'") + '"')
     for edge in edges:
         source = str(subdueGraphNodesDict[edge[0]])
         target = str(subdueGraphNodesDict[edge[1]])
-        subdueGraphEdges.append('d '+ source + ' ' + target + ' ""' )
-    
+        subdueGraphEdges.append('d ' + source + ' ' + target + ' ""')
+
     return subdueGraphNodes, subdueGraphEdges
 
-def writeSubDueInputFile(variant, subdueGraphNodes, subdueGraphEdges, filepath: str, example = 'XP'):
+
+def writeSubDueInputFile(variant, subdueGraphNodes, subdueGraphEdges, filepath: str, example='XP'):
     """ Appends Output from getSubdueGraph to .g file"""
-    f = open(filepath+".g", "a")
-    f.write('%' +variant+'%' + "\n")
+    f = open(filepath, "a")
+    f.write('%' + variant+'%' + "\n")
     f.write(example + "\n")
     for nodestr in subdueGraphNodes:
         f.write(nodestr + "\n")
@@ -52,7 +55,8 @@ def writeSubDueInputFile(variant, subdueGraphNodes, subdueGraphEdges, filepath: 
     f.write("\n")
     f.close()
 
-def createSubdueInputFile(instanceGraphsDict: dict, filepath = 'output/subdueGraphs.g'):
+
+def createSubdueInputFile(instanceGraphsDict: dict, filepath='output/subdueGraphs.g'):
 
     # overwrite bestehenden Inhalt
     f = open(filepath, "w")
@@ -61,11 +65,12 @@ def createSubdueInputFile(instanceGraphsDict: dict, filepath = 'output/subdueGra
 
     # create SubDueGraphFile
     for key, instanceGraph in instanceGraphsDict.items():
-        subdueGraphNodes, subdueGraphEdges = formatToSubdueGraphShema(instanceGraph[0], instanceGraph[1])
+        subdueGraphNodes, subdueGraphEdges = formatToSubdueGraphShema(
+            instanceGraph[0], instanceGraph[1])
         writeSubDueInputFile(key, subdueGraphNodes, subdueGraphEdges, filepath)
 
 
-def getSubGraphs(filepath = 'output/output-subdue')->list:
+def getSubGraphs(filepath='output/output-subdue') -> list:
     """ 
     Verarbeitet Subdue 5.2.2 Subgraph FileOutput zurück in my graph Format
     return subgraphes 
@@ -83,24 +88,20 @@ def getSubGraphs(filepath = 'output/output-subdue')->list:
         # Start neuen Subgraph
         if(not firstCall and line.startswith('S')):
             firstCall = False
-            subgraphs.append((currentGraphNodes,currentGraphEdges))
+            subgraphs.append((currentGraphNodes, currentGraphEdges))
             currentGraphNodes = set()
             currentGraphEdges = set()
         # füge Knoten hinzu
         elif(line.startswith('v')):
-            lineStringList=line.split()
-            nodeName = lineStringList[2].replace("'",'"') # Replace ' back to " 
+            lineStringList = line.split()
+            nodeName = lineStringList[2].replace(
+                "'", '"')  # Replace ' back to "
             currentGraphNodesDict[lineStringList[1]] = nodeName
             currentGraphNodes = nodeName
         # Füge Kante hinzu
         elif line.startswith('d') or line.startswith('e') or line.startswith('u'):
-            lineStringList=line.split()
-            currentGraphEdges.add((currentGraphNodesDict[lineStringList[1]],currentGraphNodesDict[lineStringList[2]]))
-    
+            lineStringList = line.split()
+            currentGraphEdges.add(
+                (currentGraphNodesDict[lineStringList[1]], currentGraphNodesDict[lineStringList[2]]))
+
     return subgraphs
-
-
-
-
-
-
