@@ -125,17 +125,16 @@ def buildInstanceGraphFromTrace(trace: Trace, variantAlignment, cr, classifier="
     print(trace.attributes['variant'])
     print('nodes', len(nodes))
     print('Anzahl Edges InstanceGraph build:', len(edges))
-    print('Anzahl Edges InstanceGraph build:', len(edges))
     insertedActivities, deletedActivities = sortLogAndModelMove(
         variantAlignment['alignment'])
     maxdepth = max(cr, key=lambda cr: cr[2])[2]
     edges_ = edges
     for index, event in enumerate(trace):
-        # TODO: handle Silent Transition
+        # Did find out
         if(event[classifier] in insertedActivities):
             edges_ = repairInsertedEvent(
                 edges_, event[classifier], trace, index, classifier)
-        elif(event[classifier] in deletedActivities):
+        if(event[classifier] in deletedActivities):
             edges_ = repairDeletionEvent(
                 nodes, edges_, event[classifier], cr, maxdepth)
     return (nodes, edges_, nodeEventDict)

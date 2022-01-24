@@ -5,8 +5,8 @@ from pm4py.objects.log.importer.xes import importer as xes_importer
 from pm4py.algo.discovery.inductive import algorithm as inductive_miner
 from pm4py.objects.petri_net.exporter import exporter as pnml_exporter
 
-from src.log_classifier_helper import addDivisionClassifier
-from src.log_classifier_helper import addRessourceClassifier
+from log_classifier_helper import addDivisionClassifier
+from log_classifier_helper import addRessourceClassifier
 
 path = "datasets/02_TestCompletedFFF_onlyTaskItems_simpleFilter.xes"
 
@@ -22,26 +22,26 @@ importPathName = "output/petri_net_name.pnml"
 importPathRessource = "output/petri_net_ress_name.pnml"
 
 variantIM = inductive_miner.Variants.IMf
-parameters = {inductive_miner.Variants.IMf.value.Parameters.ACTIVITY_KEY: customClassifierRessource}
-## addDivisionClassifier(log, customClassifierDivision)
-addRessourceClassifier(log, customClassifierRessource)
+parameters = {
+    inductive_miner.Variants.IMf.value.Parameters.ACTIVITY_KEY: customClassifierDivision}
+addDivisionClassifier(log, customClassifierDivision)
+# addRessourceClassifier(log, customClassifierRessource)
 print('starte PetriNet generation')
 # Log
-net, initial_marking, final_marking = inductive_miner.apply(log,variant=variantIM, parameters=parameters)
-pnml_exporter.apply(net, initial_marking, "output/petri_net_ress_name.pnml", final_marking=final_marking) 
+net, initial_marking, final_marking = inductive_miner.apply(
+    log, variant=variantIM, parameters=parameters)
+pnml_exporter.apply(net, initial_marking,
+                    "output/petri_net_division_name.pnml", final_marking=final_marking)
 print('PetriNet generation  ended')
 
 
-
-
-
 # Ist Transition in Trace
-## Achtung eine Aktivität hat mehrere Events (start,, complete ect.), d.h. es tritt in trace mehrfach auf
-## TODO: Eine Aktivität kann mehrfach auftreten, und von jemanden andern durchgeführt werden, wie behandeln wir diesen Fall? 
+# Achtung eine Aktivität hat mehrere Events (start,, complete ect.), d.h. es tritt in trace mehrfach auf
+# TODO: Eine Aktivität kann mehrfach auftreten, und von jemanden andern durchgeführt werden, wie behandeln wir diesen Fall?
 # Aktuell erscheine mehrfach auftretende Aktivitäten dadurch erscheinen, dass sie im Pnetz drin ist. Was unsere CR Grundlage ist.
-# Das reicht aus, weil wir die Instance ordering nur auf Basis der CR bemessen. 
+# Das reicht aus, weil wir die Instance ordering nur auf Basis der CR bemessen.
 # die delted und inserted Aktivitäten bekommen wird bei der Reparatur aus. später heraus
-# Sollen wir diese Fälle unterscheiden, indem wir den Namen und die 
+# Sollen wir diese Fälle unterscheiden, indem wir den Namen und die
 """ for trans in net.transitions:
     transLabel = str(trans.label) # eventname der aktuellen iteration
     isTransInTrace = lambda event: transLabel == event[customClassifierDivision]
@@ -94,4 +94,4 @@ for trans in net.transitions:
         transList.append(trans)
 print(len(transList)) """
 
-## print(net.arcs[0].name)
+# print(net.arcs[0].name)

@@ -1,5 +1,6 @@
 def getDivisionNameClassifier(event):
-    return event['division'] +"_"+ event["concept:name"][:5]
+    return event['division'] + "_" + event["concept:name"]
+
 
 def addDivisionClassifier(log, classifier):
     for trace in log:
@@ -14,11 +15,14 @@ def addRessourceClassifier(log, classifier):
         for event in trace:
             ress = event['org:resource']
             if ress not in readableRessDict:
-                readableRessDict[ress] = 'M'+ str(index)
+                readableRessDict[ress] = 'M' + str(index)
                 index += 1
-            event[classifier] = readableRessDict[ress] +"_"+ event["concept:name"][:5]
+            event[classifier] = readableRessDict[ress] + \
+                "_" + event["concept:name"]
+
 
 def addDivisionLifecyleTransClassifier(log, classifier):
     for trace in log:
         for event in trace:
-            event[classifier] = getDivisionNameClassifier(event) +'_'+ event["lifecycle:transition"]
+            event[classifier] = getDivisionNameClassifier(
+                event) + '_' + event["lifecycle:transition"]
