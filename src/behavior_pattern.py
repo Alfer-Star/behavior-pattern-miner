@@ -27,7 +27,8 @@ def calcBehaviorPattern(instanceGraphsDict, k):
     inputFile = open(g2Path, 'a')
     subdue_output_Lines = subdueOutputFile.readlines()
     passedFirstSubgraph = False
-    for line in tqdm(subdue_output_Lines):
+    # for line in tqdm(subdue_output_Lines):
+    for line in subdue_output_Lines:
         if(not passedFirstSubgraph and line.startswith('S')):
             passedFirstSubgraph = True
         elif(not line.startswith('S')):
@@ -57,6 +58,7 @@ def checkSubgraphBehaviorPattern(instanceGraphsDict: dict, filePathWithSubgraph:
 
         output =subprocess.check_output(['/home/adrian/Schreibtisch/behavior-pattern-miner/subdue-5.2.2/bin/mdl_custom', '/home/adrian/Schreibtisch/behavior-pattern-miner/' + filePathWithSubgraph, '/home/adrian/Schreibtisch/behavior-pattern-miner/' + g1Path + '.g'])
         compressionValue = float(output.decode('utf-8').rstrip().split('\n')[-1].split(' ')[-1])
+        print('compressionValue:', compressionValue)
         if 1/compressionValue > k:
             return True
     return False

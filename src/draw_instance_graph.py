@@ -1,6 +1,8 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 
+from tqdm import tqdm
+
 def transformToNetworkxGraph(instanceGraph: tuple[set, set, dict]):
     nodes, edges, eventDict = instanceGraph
 
@@ -26,3 +28,11 @@ def drawInstanceGraph(instanceGraph: tuple[set, set, dict, set], trace=None):
 
     plt.rcParams['figure.figsize'] = [100, 40] # Größe
     return plt
+
+def drawInstanceMultipleIGraphs(instanceGraphs: dict, folderPath ='output/graphs/'):
+    with tqdm(total=len(instanceGraphs)) as pbar:
+        for key, iGraph in instanceGraphs.items():
+            plot  = drawInstanceGraph(iGraph)
+            plot.savefig(folderPath+key+'.png')
+            plot.close()
+            pbar.update(1)

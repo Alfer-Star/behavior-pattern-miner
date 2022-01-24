@@ -15,8 +15,8 @@ def mapAlignmentAndLog(log: EventLog, alignmentList):
         alignmentLogMapping[variantStr] = alignment
     return alignmentLogMapping
 
-def loadAlignment(log: EventLog):
-    """ Load prepared Alignment from previous Output"""
+def loadAlignment(log: EventLog, folderPath = 'output/custom_cost_alignment_name_classifier/'):
+    """ Load prepared Alignment from previous generated Output"""
     filtered_log_0 = pm4py.filter_case_size(log, 0, 70)
     filtered_log_70 = pm4py.filter_case_size(log, 71, 100)
     filtered_log_100 = pm4py.filter_case_size(log, 101, 130)
@@ -31,7 +31,7 @@ def loadAlignment(log: EventLog):
     alignmentLogMapping = dict()
     for i in range(len(fileindexes)):
         logOfFile = filtered_logs[i]
-        filename = 'output/custom_cost_alignment_name_classifier/aligned_traces_'+str(fileindexes[i])
+        filename = folderPath+'aligned_traces_'+str(fileindexes[i])
         f = open(filename+'.json','r')
         alignmentList = json.load(f)
         f.close()
@@ -91,3 +91,29 @@ def sortLogAndModelMoveWithSilent(alignment: list):
         elif (x[1]=='>>'):
             logMoves.add(x[0])
     return modelMoves, logMoves
+
+def printEvaluationAlignment(log: EventLog, alignmentDict: dict, key: str):
+    """ key : variant string """
+    traceVaraintDict = {trace.attributes['variant']:trace for trace in log} 
+    item = alignmentDict[key]
+    alignment = item['alignment']
+    lenAlign = len(alignment)
+    lenTrace = len(traceVaraintDict[key])
+    modelMoves, logMoves = sortLogAndModelMove(alignment)
+    modelmSil, LogmSil = sortLogAndModelMoveWithSilent(alignment)
+    lenModelMoves = len(modelMoves)
+    lenlogMoves = len(logMoves)
+    # fitness.append(item['fitness'])
+    anteilAlign= (lenModelMoves +lenlogMoves) / lenAlign
+    anteilTrace = (lenModelMoves +lenlogMoves) / lenTrace
+    # anteileIR.append(anteilTrace)
+    print(key + ' Trace | Alignments: ' + str(lenTrace) + '|' + str(lenAlign))
+    print('irregular Traces (ohne Silent): ' + str(lenModelMoves+lenlogMoves ))
+    print('Fitness: ' + str(item['fitness']))
+    print('irregular Traces Anteil From Trace: ' + str(anteilTrace))
+    print('irregular Traces Anteil From Alignemt: ' + str(anteilAlign))
+    print('ModelMoves:' + str(lenModelMoves))
+    print('ModelMovesSil:' + str(len(modelmSil)-lenModelMoves))
+    print('LogMoves:' + str(lenlogMoves))
+    print('LogMovesSil:' + str(len(LogmSil)-lenlogMoves))
+    print('______________________')
