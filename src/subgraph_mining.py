@@ -105,3 +105,39 @@ def getSubGraphs(filepath='output/output-subdue') -> list:
                 (currentGraphNodesDict[lineStringList[1]], currentGraphNodesDict[lineStringList[2]]))
 
     return subgraphs
+
+
+
+def calcBehaviorPattern(instanceGraphsDict, threshold):
+    """ 
+        Uses Subdue 5.5.2  
+        Writes two outpt files
+    
+     """    
+    ## behvaior Pattern mit Subdue
+    outputFilePath = 'output/output-subdue.g'
+    inputFilePath = '/home/adrian/Schreibtisch/behavior-pattern-miner/output/subdueGraphs.g'
+
+    createSubdueInputFile(instanceGraphsDict, inputFilePath)
+
+    output = subprocess.check_output(
+        [
+            '/home/adrian/Schreibtisch/behavior-pattern-miner/subdue-5.2.2/bin/subdue',
+            '-beam', '4',
+            '-compress',
+            '-eval','1', 
+            '-iterations', '0',
+            'threshold', str(threshold),
+            'output', '4', 
+            '-out', outputFilePath, 
+            inputFilePath
+        ])
+
+    subdueOutputFilePath = 'output/output-subdue'
+    inputFile = open(subdueOutputFilePath, 'w')
+    inputFile.write(output.decode('utf-8'))
+    inputFile.close()
+
+    behaviorPattern = list()
+
+    return behaviorPattern
