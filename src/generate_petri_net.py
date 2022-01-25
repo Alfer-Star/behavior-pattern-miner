@@ -6,11 +6,13 @@ from pm4py.algo.discovery.inductive import algorithm as inductive_miner
 from pm4py.objects.petri_net.exporter import exporter as pnml_exporter
 
 from log_classifier_helper import addDivisionClassifier
+from log_classifier_helper import addDivisionClassifierNoDuplicate
 from log_classifier_helper import addRessourceClassifier
 
 import sys
 
-assert sys.argv[1] == 'division' or sys.argv[1] == 'std' or sys.argv[1] == 'ressource' or len(sys.argv) == 1 
+assert sys.argv[1] == 'division' or sys.argv[1] == 'std' or sys.argv[1] == 'ressource' or int(
+    sys.argv[2]) or len(sys.argv) == 1
 
 std_classifier = "concept:name"
 customClassifierDivision = "customClassifierDivision"
@@ -30,15 +32,19 @@ log = pm4py.filter_case_size(log, 0, 300)
 if (sys.argv[1] == 'division'):
     print('choose Division Ansatz')
     outputFile = importPathDivision
-    addDivisionClassifier(log, customClassifierDivision)
+    if(int(sys.argv[2])):
+        addDivisionClassifierNoDuplicate(
+            log, customClassifierDivision, int(sys.argv[2]))
+    else:
+        addDivisionClassifier(log, customClassifierDivision)
     parameters = {
-    inductive_miner.Variants.IMf.value.Parameters.ACTIVITY_KEY: customClassifierDivision}
+        inductive_miner.Variants.IMf.value.Parameters.ACTIVITY_KEY: customClassifierDivision}
 elif (sys.argv[1] == 'ressource'):
     print('choose Ressource Ansatz')
     outputFile = importPathRessource
     addRessourceClassifier(log, customClassifierRessource)
     parameters = {
-    inductive_miner.Variants.IMf.value.Parameters.ACTIVITY_KEY: customClassifierRessource}
+        inductive_miner.Variants.IMf.value.Parameters.ACTIVITY_KEY: customClassifierRessource}
 else:
     print('choose Standard Ansatz')
     parameters = None
@@ -50,8 +56,9 @@ print('starte PetriNet generation')
 # Log
 net, initial_marking, final_marking = inductive_miner.apply(
     log, variant=variantIM, parameters=parameters)
+print('PetriNet generation  ended')
 pnml_exporter.apply(net, initial_marking,
-                    importPathDivision, final_marking=final_marking)
+                    outputFile, final_marking=final_marking)
 print('PetriNet generation  ended')
 
 
