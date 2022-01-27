@@ -27,18 +27,17 @@ path = "../datasets/02_TestCompletedFFF_onlyTaskItems_simpleFilter.xes"
 
 log = xes_importer.apply(path)
 log = pm4py.filter_case_size(log, 0, 300)
-
+parameters = dict()
 
 if (sys.argv[1] == 'division'):
     print('choose Division Ansatz')
     outputFile = importPathDivision
-    if(int(sys.argv[2])):
+    if(len(sys.argv) > 2):
         addDivisionClassifierNoDuplicate(
             log, customClassifierDivision, int(sys.argv[2]))
     else:
         addDivisionClassifier(log, customClassifierDivision)
-    parameters = {
-        inductive_miner.Variants.IMf.value.Parameters.ACTIVITY_KEY: customClassifierDivision}
+    parameters[inductive_miner.Variants.IMf.value.Parameters.ACTIVITY_KEY] = customClassifierDivision
 elif (sys.argv[1] == 'ressource'):
     print('choose Ressource Ansatz')
     outputFile = importPathRessource
@@ -59,7 +58,7 @@ net, initial_marking, final_marking = inductive_miner.apply(
 print('PetriNet generation  ended')
 pnml_exporter.apply(net, initial_marking,
                     outputFile, final_marking=final_marking)
-print('PetriNet generation  ended')
+print('PetriNet exported')
 
 
 # Ist Transition in Trace
