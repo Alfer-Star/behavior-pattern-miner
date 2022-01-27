@@ -13,8 +13,8 @@ import os
 import json
 import sys
 
-assert sys.argv[1] == 'division' or sys.argv[1] == 'std' or sys.argv[1] == 'ressource' or len(
-    sys.argv) == 1
+assert len(
+    sys.argv) < 2 or sys.argv[1] == 'division' or sys.argv[1] == 'std' or sys.argv[1] == 'ressource'
 
 std_classifier = "concept:name"
 customClassifierDivision = "customClassifierDivision"
@@ -27,13 +27,14 @@ path = "../datasets/02_TestCompletedFFF_onlyTaskItems_simpleFilter.xes"
 log = xes_importer.apply(path)
 log = pm4py.filter_case_size(log, 0, 300)
 
-if (sys.argv[1] == 'division'):
+classifier = None
+if (len(sys.argv) > 1 and sys.argv[1] == 'division'):
     print('choose Division Ansatz')
     netImportPath = "../output/petri_net_division_name.pnml"
     outputPath = '../output/custom_cost_alignment_division/aligned_traces_'
     classifier = customClassifierDivision
     addDivisionClassifier(log, classifier)
-elif (sys.argv[1] == 'ressource'):
+elif (len(sys.argv) > 1 and sys.argv[1] == 'ressource'):
     print('choose Ressource Ansatz')
     netImportPath = "../output/petri_net_ress_name.pnml"
     outputPath = '../output/custom_cost_alignment_ressource/aligned_traces_'
@@ -42,13 +43,14 @@ elif (sys.argv[1] == 'ressource'):
 else:
     netImportPath = "../output/petri_net_name.pnml"
     outputPath = '../output/custom_cost_alignment_name/aligned_traces_'
-    classifier = std_classifier
 
 
 net, initial_marking, final_marking = pnml_importer.apply(
     os.path.join(netImportPath))
 
-minMaxList = [(1, 70), (71, 100), (101, 130), (131, 150),
+# (1, 70), (71, 100), (101, 130),
+
+minMaxList = [(131, 150),
               (151, 180), (181, 220), (221, 300)]
 for minValue, maxValue in minMaxList:
     print('Begin Stage:', minValue, maxValue)
