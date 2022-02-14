@@ -27,7 +27,7 @@ def createOrgaUnitDict(log: EventLog, ressPrefix='M'):
 
 
 def getBPActivityLabel(event, orgaDict):
-    return orgaDict(event['org:resource']+event['concept:name'])
+    return orgaDict(event['org:resource'])+event['concept:name']
 
 
 # Raw Instnace Graph
