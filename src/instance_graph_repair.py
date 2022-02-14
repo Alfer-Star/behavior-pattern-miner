@@ -1,8 +1,7 @@
+from tqdm import tqdm
 from pm4py.objects.log.obj import Trace
 
-from instance_graph_new import BP_NODE_LABEL
-
-from tqdm import tqdm
+BP_NODE_LABEL = 'BPNodeLabel'
 
 
 # Reperatur
@@ -13,6 +12,7 @@ def repairInsertedEvent(edges_: set[tuple], insertedEventName, trace: Trace, ind
     removingEdges = {(source, target) for (
         source, target) in edges_ if source == insertedEventName or target == insertedEventName}
     ''' Füge Event zwischen dem Event, welches nach den Inserted event aufgetreten ist und dessen Vorgänger '''
+    assert(trace[index][classifier] == insertedEventName)
     eventAppearedAfterLabel = None
     for i in range(index + 1, len(trace)):
         eventLabel = trace[i][classifier]
@@ -47,30 +47,6 @@ def calculateDeletionCRNodes(correspondingCR, nonDeletionIndex, maxdepth, delete
             print('Repair break loop, after reached max deepness:' + str(maxdepth))
             break
     return casualRelItems
-
-
-""" 
-    correspondingPreCR = {cr for cr in CR if cr[1]==deletionEventName and cr[0] in nodes }
-    {cr[0] for cr in correspondingPreCR if cr[2] == 0}
-    depthIndex = 1
-    while(casualPredecessor and casualPredecessor):
-        casualPredecessor = {cr[0] for cr in correspondingPreCR if cr[2] == depthIndex}
-        depthIndex += 1
-        if(depthIndex < maxdepth):
-            print('Repair break loop, after '+ str(maxdepth)+ ' failed iterations')
-            break
-
-    correspondingSucCR = {cr for cr in CR  if cr[0]== deletionEventName and cr[1] in nodes}
-    casualSuccessor = {cr[1] for cr in correspondingSucCR if cr[2]<= 0}
-    depthIndex = 1
-    while(deletedEventHasCR and casualPredecessor):
-        casualPredecessor = {cr[1] for cr in correspondingSucCR if cr[2]<= depthIndex}
-        depthIndex += 1
-        if(depthIndex < maxdepth):
-            print('Repair break loop, after '+ str(maxdepth)+ ' failed iterations')
-            break
-
- """
 
 
 def repairDeletionEvent(nodes: set, edges_: set[tuple], nodelAbelEventDict: dict, deletionEvent, CR, maxdepth=1000):
