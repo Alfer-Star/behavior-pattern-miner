@@ -2,12 +2,17 @@ from src.conformance_with_alignment import sortLogAndModelMove
 
 from src.casual_releation import calculateCR
 
+from src.instance_graph_repair import repairDeletionEvent
+from src.instance_graph_repair import repairInsertedEvent
+
 from pm4py.objects.petri_net.obj import PetriNet
 from pm4py.objects.log.obj import EventLog
 from pm4py.objects.log.obj import Trace
 
 from tqdm import tqdm
 
+BP_NODE_LABEL = 'BPNodeLabel'
+GEN_IG_ORGA_PARAMETER = 'orgaDict'
 
 def createOrgaUnitDict(log: EventLog, ressPrefix='M'):
     orgaUnitDict = dict()
@@ -20,169 +25,69 @@ def createOrgaUnitDict(log: EventLog, ressPrefix='M'):
                 index += 1
 
 
-def getBPActivityLabel(event, orgaDict, considerLifeCycleTrans=False):
-    lifecyle = ''
-    if(considerLifeCycleTrans):
-        lifecyle = event['lifecycle:transition']
-    return orgaDict(event['org:resource'])+event['concept:name'] + lifecyle
+def getBPActivityLabel(event, orgaDict):
+    return orgaDict(event['org:resource'])+event['concept:name']
 
 
 # Raw Instnace Graph
 
 
-def genInstanceGraph(trace: Trace, CR, orgaDict: dict, considerLifecycle=False):
-    """ Generates Nodes on Edge, in other words from Instace ordering Output """
-    plainActivitysInGraph = {event['concept:name'] for event in trace}
-    nodes = {getBPActivityLabel(event, orgaDict, considerLifecycle)
-             for event in trace}
+def genInstanceGraph(trace: Trace, CR, orgaDict: dict, classifier="concept:name", **kwargs):
+    """ Generates Node for Every event and add edges if between Events instance ordering fullfilled """
+    nodes = set()  
+    edges = set()
+    nodeLabelEventDict = dict()
+    
+    prevEvent = trace[0]
+    for event in trace:
+        label = getBPActivityLabel(event, orgaDict)
 
-    # Casual Relation erfüllt Instance Ordering Eigenschaft
-    # dabei bedeutet depth 0, dass es sich um ein direkte nachfolge Beziehung mit keiner anderen Aktivität dazwischen handelt (InstanceOrdering).
-    # TODO: CR sorgt, aktuell für gewaltige "Verbindungs Cluster"
-    instanceOrdering = {(source, target) for (source, target, depth)
-                        in CR if source in plainActivitysInGraph and target in plainActivitysInGraph and depth <= 0}
+        # vermeide gleiche label bei unterschiedlichen Events
+        index = 1
+        newlabel = label
+        while(newlabel in nodes):
+            newlabel = label + index
+            index +=1
+        label = newlabel
 
-    edges = {(getBPActivityLabel(sourceEvent, orgaDict, considerLifecycle), getBPActivityLabel(targetEevent, orgaDict, considerLifecycle))
-             for sourceEvent in trace for targetEevent in trace if (sourceEvent['concept.name'], targetEevent['concept.name']) in instanceOrdering}
+        event[BP_NODE_LABEL] = label
+        nodeLabelEventDict[label] = event
+        nodes.add(label)
+        
+        # Casual Relation, die Instance Ordering Eigenschaft erfüllt
+        # dabei bedeutet depth 0, dass es sich um ein direkte nachfolge Beziehung mit keiner anderen Aktivität dazwischen handelt (InstanceOrdering).
+        plainActivitysInGraph = {event['concept:name'] for event in trace}
+        instanceOrdering = {(source, target) for (source, target, depth)
+                            in CR if source in plainActivitysInGraph and target in plainActivitysInGraph and depth <= 0}
 
-    # Event Mapping, das letzte Auftreten ds events ist für die Aktivität hinterlegt hinterlegt
-    nodeEventDict = dict()
-    for node in nodes:
-        nodeEventDict[node] = filter(trace, lambda event: getBPActivityLabel(
-            event, orgaDict, considerLifecycle) == node)
-    return nodes, edges, nodeEventDict
+        if(event == prevEvent): # Case 
+            continue
+        elif((prevEvent[classifier], event[classifier]) in instanceOrdering):
+            edges.add((prevEvent[BP_NODE_LABEL], label))
+        
+        prevEvent = event
 
-
-# Reperatur
-# Ansatz von Diamantini, C., Genga, L., and Potena, D. 2016. “Behavioral process mining for unstructured processes,” Journal of Intelligent Information Systems (47:1), pp. 5-32 (doi: 10.1007/s10844-016-0394-7)
-def getNextEventOfAnotherActivity(trace, index, insertedEventName, nodeEventDict: dict):
-    listOfEventsOfSameActivity = next(
-        item for key, item in nodeEventDict.items() if key == insertedEventName)
-    event = trace[index]
-    return next(trace[i] for i in range(index+1, len(trace)) if trace[i] in listOfEventsOfSameActivity)
-
-
-def repairInsertedEvent(edges_: set[tuple], insertedEventName, trace: Trace, index, nodeEventDict: dict, classifier="concept:name"):
-    ''' Entferne alle kanten zwischen zwischen dem Inserted Event und anderen Events, weil irregulär eingefügt '''
-    removingEdges = {(source, target) for (
-        source, target) in edges_ if source == insertedEventName or target == insertedEventName}
-    ''' Füge Event zwischen dem Event, welches nach den Inserted event aufgetreten ist und dessen Vorgänger '''
-    eventAppearedAfter = getNextEventOfAnotherActivity(
-        trace, index, nodeEventDict)
-    aftereventLabel = next(
-        key for key, eventList in nodeEventDict.items() if eventAppearedAfter in eventList)
-    predecessorOfAfterEvent = {source for (source, target) in edges_
-                               if target == aftereventLabel}
-    addedEdges = {(source, insertedEventName) for source in predecessorOfAfterEvent}.union(
-        {(insertedEventName, aftereventLabel)})
-    try:
-        assert(len(addedEdges) > 0)
-    except:
-        print("Keine Kanten für Insertion hinzugefügt!", insertedEventName)
-
-    edges_ = edges_.difference(removingEdges).union(addedEdges)
-    ''' Redundant die Kanten welche die Verbindung zwischen dem eventAppearedAfter und predecessorOfAfterEvent darstellen, 
-        weil dieses aufgelöst und durch die INsertion ersetzt wurde'''
-    redundEdges = {(source, target) for (source, target)
-                   in edges_ if source in predecessorOfAfterEvent and target == aftereventLabel}
-    edges_.difference_update(redundEdges)
-    return edges_
+    return nodes, edges, nodeLabelEventDict
 
 
-def calculateDeletionCRNodes(correspondingCR, nonDeletionIndex, maxdepth, deletedEventHasCR):
-    casualRelItems = set()
-    depthIndex = -1
-    while(deletedEventHasCR and len(casualRelItems) < 1):
-        casualRelItems = {cr[nonDeletionIndex]
-                          for cr in correspondingCR if cr[2] <= depthIndex}
-        depthIndex += 1
-        if(depthIndex > maxdepth):
-            print('Repair break loop, after reached max deepness:' + str(maxdepth))
-            break
-    return casualRelItems
-
-
-"""
-    correspondingPreCR = {
-        cr for cr in CR if cr[1]==deletionEventName and cr[0] in nodes }
-    {cr[0] for cr in correspondingPreCR if cr[2] == 0}
-    depthIndex = 1
-    while(casualPredecessor and casualPredecessor):
-        casualPredecessor = {cr[0]
-            for cr in correspondingPreCR if cr[2] == depthIndex}
-        depthIndex += 1
-        if(depthIndex < maxdepth):
-            print('Repair break loop, after '+ \
-                  str(maxdepth)+ ' failed iterations')
-            break
-
-    correspondingSucCR = {
-        cr for cr in CR  if cr[0]== deletionEventName and cr[1] in nodes}
-    casualSuccessor = {cr[1] for cr in correspondingSucCR if cr[2]<= 0}
-    depthIndex = 1
-    while(deletedEventHasCR and casualPredecessor):
-        casualPredecessor = {cr[1]
-            for cr in correspondingSucCR if cr[2]<= depthIndex}
-        depthIndex += 1
-        if(depthIndex < maxdepth):
-            print('Repair break loop, after '+ \
-                  str(maxdepth)+ ' failed iterations')
-            break
-
- """
-
-
-def repairDeletionEvent(nodes: set, edges_: set[tuple], deletionEventName, CR, maxdepth=1000):
-    deletedEventHasCR = any(
-        {cr[0] == deletionEventName or cr[1] == deletionEventName for cr in CR})
-    if(not deletedEventHasCR):
-        print("Not deletedEventHasCR: No deletion Add!", deletionEventName)
-        return edges_
-    # cs where CasualPredecessor in Nodes and smallest depth (nearest predecessor)
-    correspondingPreCR = {
-        cr for cr in CR if cr[1] == deletionEventName and cr[0] in nodes}
-    casualPredecessor = calculateDeletionCRNodes(
-        correspondingPreCR, 0, maxdepth, deletedEventHasCR)
-
-    # cs where CasualSuccessor in Nodes and smallest depth (nearest successor )
-    correspondingSucCR = {
-        cr for cr in CR if cr[0] == deletionEventName and cr[1] in nodes}
-    casualSuccessor = calculateDeletionCRNodes(
-        correspondingSucCR, 1, maxdepth, deletedEventHasCR)
-    try:
-        assert(len(casualSuccessor) > 0 and len(casualPredecessor) > 0)
-    except:
-        print("Kann keine Kanten für deletion hinzufügen!", deletionEventName)
-        print('correspondingPreCR', str(len(correspondingPreCR)))
-        print('correspondingSucCR', str(len(correspondingSucCR)))
-        print('casualSuccessor: ' + str(len(casualSuccessor)))
-        print('casualPredecessor: ' + str(len(casualPredecessor)))
-    addingEdges = {(source, target)
-                   for source in casualPredecessor for target in casualSuccessor}
-    edges_.update(addingEdges)
-    # kp ob redundante ecken entstehen können
-    # redunEdges = {(source,target) for (source,target) in edges_ if source in predecessorOfAfterEvent and target == aftereventLabel}
-    return edges_
-
-
-def buildInstanceGraphFromTrace(trace: Trace, variantAlignment, cr, orgaDict: dict, classifier="concept:name"):
+def buildInstanceGraphFromTrace(trace: Trace, alignmentList: list, cr, orgaDict: dict, classifier="concept:name"):
     nodes, edges, nodeEventDict = genInstanceGraph(
         trace, cr, orgaDict, classifier)
-    print(trace.attributes['variant'])
+    """ print(trace.attributes['variant'])
     print('nodes', len(nodes))
-    print('Anzahl Edges InstanceGraph build:', len(edges))
-    insertedActivities, deletedActivities = sortLogAndModelMove(
-        variantAlignment['alignment'])
+    print('Anzahl Edges InstanceGraph build:', len(edges)) """
+    filter(lambda alignment: None not in alignment, alignmentList)
     maxdepth = max(cr, key=lambda cr: cr[2])[2]
     edges_ = edges
+    assert(len(trace) == len(alignmentList))
     for index, event in enumerate(trace):
-        # Did find out
-        if(event[classifier] in insertedActivities):
+        assert(event[classifier] in [alignmentList[index][0], alignmentList[index][1]])
+        if(alignmentList[index][0] == '>>'):
             edges_ = repairInsertedEvent(
-                edges_, event[classifier], trace, index, classifier)
-        if(event[classifier] in deletedActivities):
+                edges_, event[BP_NODE_LABEL], trace, index, classifier)
+        if(alignmentList[index][1] == '>>'):
             edges_ = repairDeletionEvent(
-                nodes, edges_, event[classifier], cr, maxdepth)
+                nodes, edges_, nodeEventDict, event, cr, maxdepth)
     return (nodes, edges_, nodeEventDict)
 
 

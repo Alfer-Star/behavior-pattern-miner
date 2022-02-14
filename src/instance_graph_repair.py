@@ -1,5 +1,7 @@
 from pm4py.objects.log.obj import Trace
 
+from instance_graph_new import BP_NODE_LABEL
+
 from tqdm import tqdm
 
 
@@ -71,27 +73,29 @@ def calculateDeletionCRNodes(correspondingCR, nonDeletionIndex, maxdepth, delete
  """
 
 
-def repairDeletionEvent(nodes: set, edges_: set[tuple], deletionEventName, CR, maxdepth=1000):
+def repairDeletionEvent(nodes: set, edges_: set[tuple], nodelAbelEventDict: dict, deletionEvent, CR, maxdepth=1000):
+    deletionActivityName = deletionEvent['concept:name']
+    deletionBPLabel = deletionEvent['concept:name']
     deletedEventHasCR = any(
-        {cr[0] == deletionEventName or cr[1] == deletionEventName for cr in CR})
+        {cr[0] == deletionActivityName or cr[1] == deletionActivityName for cr in CR})
     if(not deletedEventHasCR):
-        print("Not deletedEventHasCR: No deletion Add!", deletionEventName)
+        print("Not deletedEventHasCR: No deletion Add!", deletionActivityName)
         return edges_
     # cs where CasualPredecessor in Nodes and smallest depth (nearest predecessor)
     correspondingPreCR = {
-        cr for cr in CR if cr[1] == deletionEventName and cr[0] in nodes}
+        cr for cr in CR if cr[1] == deletionActivityName and cr[0] in nodes}
     casualPredecessor = calculateDeletionCRNodes(
         correspondingPreCR, 0, maxdepth, deletedEventHasCR)
 
     # cs where CasualSuccessor in Nodes and smallest depth (nearest successor )
     correspondingSucCR = {
-        cr for cr in CR if cr[0] == deletionEventName and cr[1] in nodes}
+        cr for cr in CR if cr[0] == deletionActivityName and cr[1] in nodes}
     casualSuccessor = calculateDeletionCRNodes(
         correspondingSucCR, 1, maxdepth, deletedEventHasCR)
     try:
         assert(len(casualSuccessor) > 0 and len(casualPredecessor) > 0)
     except:
-        print("Kann keine Kanten für deletion hinzufügen!", deletionEventName)
+        print("Kann keine Kanten für deletion hinzufügen!", deletionActivityName)
         print('correspondingPreCR', str(len(correspondingPreCR)))
         print('correspondingSucCR', str(len(correspondingSucCR)))
         print('casualSuccessor: ' + str(len(casualSuccessor)))
