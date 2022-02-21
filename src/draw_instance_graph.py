@@ -1,7 +1,10 @@
+import graphviz
 import networkx as nx
 import matplotlib.pyplot as plt
 
 from tqdm import tqdm
+
+# ============ Networkx ==========
 
 
 def transformToNetworkxGraph(instanceGraph: tuple[set, set, dict]):
@@ -38,4 +41,26 @@ def drawInstanceMultipleIGraphs(instanceGraphs: dict, folderPath='output/graphs/
             plot = drawInstanceGraph(iGraph)
             plot.savefig(folderPath+key+'.png')
             plot.close('all')
+            pbar.update(1)
+
+
+# ================ GraphViz =================
+# https://graphviz.readthedocs.io/en/stable/manual.html
+
+
+def createGraphVizGraph(IG: tuple[set, set[tuple], dict], graphName: str):
+    dot = graphviz.Digraph(graphName, comment='Instance Graph', format='svg')
+    for node in IG[0]:
+        identifier = node
+        label = node
+        dot.node(identifier, label)
+    dot.edges(IG[1])
+    return dot
+
+
+def drawInstanceGraphViz(instanceGraphs: dict, folderPath='output/graphs/', view=False):
+    with tqdm(total=len(instanceGraphs)) as pbar:
+        for key, ig in instanceGraphs.items():
+            dot = createGraphVizGraph(ig, key)
+            dot.render(directory=folderPath, view=view)
             pbar.update(1)
