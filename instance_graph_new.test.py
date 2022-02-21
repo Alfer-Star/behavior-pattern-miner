@@ -1,33 +1,12 @@
 import unittest
 from pm4py.objects.log.obj import Trace
 
-from src.instance_graph_repair import repairDeletionEvent
-from src.instance_graph_repair import repairInsertedEvent
+from src.instance_graph_repair_new import repairDeletionEvent as repairDeletionEventNew
+from src.instance_graph_repair_new import repairInsertedEvent as repairInsertedEventNew
 
-from src.instance_graph import genInstanceGraph as genInstanceGraphA
+from src.instance_graph_new import genInstanceGraph as genInstanceGraphNew
 
 # Testfall aus Diamantini
-insertion = [('M3WR', 'M4RR1'), ('M3WR', 'M4RR2'), ('M4RR1', 'M1WD'), ('M4RR1', 'M2WD'),
-             ('M1WD', 'M5RD'), ('M2WD', 'M5RD'), ('M5RD', 'M4WC'), ('M4WC', 'M1TC')]
-deletion = [('M3WR', 'M4RR'), ('M4RR', 'M1WD'),
-            ('M4RR1', 'M2WD'), ('M4WC', 'M1TC')]
-
-nodesIns = ['M3WR', 'M4RR1', 'M1WD', 'M2WD', 'M4RR2', 'M5RD', 'M4WC', 'M1TC']
-nodesDel = ['M3WR', 'M4RR1', 'M4RR2', 'M1WD', 'M2WD', 'M4WC', 'M1TC']
-
-cr = [('M3WR', 'M4RR', 0), ('M4RR', 'M1WD', 0), ('M4RR', 'M2WD', 0),
-      ('M1WD', 'M5RD', 0), ('M2WD', 'M5RD', 0), ('M5RD', 'M4WC', 0), ('M4WC', 'M1TC', 0)]
-
-traceIns = Trace([{'concept:name': eventname, 'time:timestamp': index,
-                 'lifecycle:transition': 'complete'} for index, eventname in enumerate(nodesIns)])
-traceDel = Trace([{'concept:name': eventname, 'time:timestamp': index,
-                 'lifecycle:transition': 'complete'} for index, eventname in enumerate(nodesDel)])
-# Should
-
-shouldEdgesIns = {('M3WR', 'M4RR1'), ('M4RR1', 'M1WD'), ('M4RR1', 'M2WD'),
-                  ('M1WD', 'M4RR2'), ('M2WD', 'M4RR2'), ('M4RR2', 'M5RD'), ('M5RD', 'M4WC'), ('M4WC', 'M1TC')}
-shouldEdgesDel = {('M3WR', 'M4RR'), ('M4RR', 'M1WD'),
-                  ('M4RR1', 'M2WD'), ('M2WD', 'M4WC'), ('M1WD', 'M4WC'), ('M4WC', 'M1TC')}
 
 
 def generateLifecyleTrace(nodes):
@@ -38,7 +17,7 @@ def generateLifecyleTrace(nodes):
         nodes) for event in f(eventname, index)])
 
 
-class TestInstanceGraphRepair(unittest.TestCase):
+class TestInstanceGraphRepairNew(unittest.TestCase):
     def test_deletion_repair(self):
         deletion = [('M3WR', 'M4RR'), ('M4RR', 'M1WD'),
                     ('M4RR1', 'M2WD'), ('M4WC', 'M1TC')]
@@ -48,7 +27,7 @@ class TestInstanceGraphRepair(unittest.TestCase):
         # Should
         shouldEdgesDel = {('M3WR', 'M4RR'), ('M4RR', 'M1WD'),
                           ('M4RR1', 'M2WD'), ('M2WD', 'M4WC'), ('M1WD', 'M4WC'), ('M4WC', 'M1TC')}
-        self.assertEqual(repairDeletionEvent(
+        self.assertEqual(repairDeletionEventNew(
             set(nodesDel), set(deletion), 'M5RD', cr, 1), shouldEdgesDel)
 
     def test_insertion_repair(self):
@@ -62,7 +41,7 @@ class TestInstanceGraphRepair(unittest.TestCase):
         shouldEdgesIns = {('M3WR', 'M4RR1'), ('M4RR1', 'M1WD'), ('M4RR1', 'M2WD'),
                           ('M1WD', 'M4RR2'), ('M2WD', 'M4RR2'), ('M4RR2', 'M5RD'), ('M5RD', 'M4WC'), ('M4WC', 'M1TC')}
 
-        self.assertEqual(repairInsertedEvent(
+        self.assertEqual(repairInsertedEventNew(
             set(insertion), 'M4RR2', traceIns, 4), shouldEdgesIns)
 
     def test_insertion_repair_lifecycles(self):
@@ -76,12 +55,12 @@ class TestInstanceGraphRepair(unittest.TestCase):
         shouldEdgesIns = {('M3WR', 'M4RR1'), ('M4RR1', 'M1WD'), ('M4RR1', 'M2WD'),
                           ('M1WD', 'M4RR2'), ('M2WD', 'M4RR2'), ('M4RR2', 'M5RD'), ('M5RD', 'M4WC'), ('M4WC', 'M1TC')}
 
-        self.assertEqual(repairInsertedEvent(
+        self.assertEqual(repairInsertedEventNew(
             set(insertion), 'M4RR2', traceIns, 8), shouldEdgesIns)
 
 
-class TestInstanceGraphActivityGen(unittest.TestCase):
-    def test_insertion_IGA_gen(self):
+class TestInstanceGraphNewGen(unittest.TestCase):
+    def test_insertion_IG_gen(self):
         activities = ['WR', 'RR', 'WD', 'WD', 'RR', 'RD', 'WC', 'TC']
         oragUnits = ['M3', 'M4', 'M1', 'M2', 'M4', 'M5', 'M4', 'M1']
         orgaDict = {oragUnit: oragUnit for oragUnit in oragUnits}
@@ -92,17 +71,18 @@ class TestInstanceGraphActivityGen(unittest.TestCase):
 
         # should
         # ignore Case if two appearence, First Appearence has also an index appendix
-        nodes = set(['WR', 'RR', 'WD', 'WD', 'RD', 'WC', 'TC'])
-        edges = set([('WR', 'RR'), ('RR', 'WD'), ('RR', 'WD'),
-                    ('WD', 'RD'), ('WD', 'RD'), ('RD', 'WC'), ('WC', 'TC')])
+        nodes = set(['M3WR', 'M4RR', 'M1WD', 'M2WD',
+                     'M4RR2', 'M5RD', 'M4WC', 'M1TC'])
+        edges = set([('M3WR', 'M4RR'), ('M3WR', 'M4RR2'), ('M4RR', 'M1WD'), ('M4RR', 'M2WD'),
+                    ('M1WD', 'M5RD'), ('M2WD', 'M5RD'), ('M5RD', 'M4WC'), ('M4WC', 'M1TC')])
 
         #nodeEventDict = {nodes[i]: trace[i] for i in range(len(trace))}
-        igraph = genInstanceGraphA(
-            trace, cr)
+        igraph = genInstanceGraphNew(
+            trace, cr, orgaDict)
         self.assertEqual(igraph[0], nodes)
         self.assertEqual(igraph[1], edges)
 
-    def test_deletion_IGA_gen(self):
+    def test_deletion_IG_gen(self):
         #'M3WR', 'M4RR1', 'M1WD', 'M2WD', 'M4WC', 'M1TC'
         activities = ['WR', 'RR', 'WD', 'WD', 'WC', 'TC']
         oragUnits = ['M3', 'M4', 'M1', 'M2', 'M4', 'M1']
@@ -113,12 +93,12 @@ class TestInstanceGraphActivityGen(unittest.TestCase):
                   ('WD', 'RD', 0), ('WD', 'RD', 0), ('RD', 'WC', 0), ('WC', 'TC', 0)])
 
         # should
-        nodes = set(['WR', 'RR', 'WD', 'WD', 'WC', 'TC'])
-        edges = set([('WR', 'RR'), ('RR', 'WD'),
-                    ('RR', 'WD'), ('WC', 'TC')])
+        nodes = set(['M3WR', 'M4RR', 'M1WD', 'M2WD', 'M4WC', 'M1TC'])
+        edges = set([('M3WR', 'M4RR'), ('M4RR', 'M1WD'),
+                    ('M4RR', 'M2WD'), ('M4WC', 'M1TC')])
         #nodeEventDict = {nodes[i]: trace[i] for i in range(len(trace))}
-        igraph = genInstanceGraphA(
-            trace, cr)
+        igraph = genInstanceGraphNew(
+            trace, cr, orgaDict)
         self.assertEqual(igraph[0], nodes)
         self.assertEqual(igraph[1], edges)
 
