@@ -22,15 +22,16 @@ Beware Subdue is tested on linux.
 
 # Usage
 
+Consult for a better understandig Behavioral Pattern the entry Paper.   
 Use PM4PY Import Methods to import your Event Log.  
 Use PM4Py iIM to generate a PetriNet (Workflow net) which represents Event Casual Relation to the best.  
 For Instance Graph repair purpose get Pm4Py alignment from PetriNet and Event Log, but beware Alignment calculation is very slow.  
 
-Functions to generate 
+In src you find Functions to generate 
 - Casual Relation from Petri Net, 
 - Instance Graph from Event log and Casual Relation
 - to repair instance Graph
-- to generate Instance Graph and Repair
-in src.  
+- to generate Instance Graph and Repair  
+
 You find a usage example in BehavioralPattern.ipynb (jupyter Notebook).  
 
