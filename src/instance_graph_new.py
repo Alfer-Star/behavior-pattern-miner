@@ -27,7 +27,7 @@ def createOrgaUnitDict(log: EventLog, ressPrefix='M'):
 
 
 def getBPActivityLabel(event, orgaDict):
-    return orgaDict(event['org:resource'])+event['concept:name']
+    return orgaDict[event['org:resource']]+event['concept:name']
 
 
 # Raw Instnace Graph
@@ -39,27 +39,27 @@ def genInstanceGraph(trace: Trace, CR, orgaDict: dict, classifier="concept:name"
     edges = set()
     nodeLabelEventDict = dict()
 
+    # Casual Relation, die Instance Ordering Eigenschaft erfüllt
+    # dabei bedeutet depth 0, dass es sich um ein direkte nachfolge Beziehung mit keiner anderen Aktivität dazwischen handelt (InstanceOrdering).
+    plainActivitysInGraph = {event['concept:name'] for event in trace}
+    instanceOrdering = {(source, target) for (source, target, depth)
+                        in CR if source in plainActivitysInGraph and target in plainActivitysInGraph and depth <= 0}
+
     prevEvent = trace[0]
     for event in trace:
         label = getBPActivityLabel(event, orgaDict)
 
         # vermeide gleiche label bei unterschiedlichen Events
-        index = 1
+        index = 2
         newlabel = label
         while(newlabel in nodes):
-            newlabel = label + index
+            newlabel = label + str(index)
             index += 1
         label = newlabel
 
         event[BP_NODE_LABEL] = label
         nodeLabelEventDict[label] = event
         nodes.add(label)
-
-        # Casual Relation, die Instance Ordering Eigenschaft erfüllt
-        # dabei bedeutet depth 0, dass es sich um ein direkte nachfolge Beziehung mit keiner anderen Aktivität dazwischen handelt (InstanceOrdering).
-        plainActivitysInGraph = {event['concept:name'] for event in trace}
-        instanceOrdering = {(source, target) for (source, target, depth)
-                            in CR if source in plainActivitysInGraph and target in plainActivitysInGraph and depth <= 0}
 
         if(event == prevEvent):  # Case
             continue
