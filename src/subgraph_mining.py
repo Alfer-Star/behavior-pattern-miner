@@ -1,3 +1,5 @@
+from genericpath import exists
+from os import makedirs
 import subprocess
 
 
@@ -56,9 +58,11 @@ def writeSubDueInputFile(variant, subdueGraphNodes, subdueGraphEdges, filepath: 
     f.close()
 
 
-def createSubdueInputFile(instanceGraphsDict: dict, filepath='output/subdueGraphs.g'):
-
+def createSubdueInputFile(instanceGraphsDict: dict, path='output/', filename='subdueGraphs.g'):
+    filepath = path + filename
     # overwrite bestehenden Inhalt
+    if not exists(path):
+        makedirs(path)
     f = open(filepath, "w")
     f.write("")
     f.close()

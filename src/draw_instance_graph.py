@@ -23,8 +23,8 @@ def drawInstanceGraph(instanceGraph: tuple[set, set, dict, set], trace=None):
     # Layout
     # pos = nx.multipartite_layout(G) ## layers of straight lines: https://networkx.org/documentation/stable/reference/drawing.html?highlight=layout#module-networkx.drawing.layout)
     # zwo straight lines
-    #top = nx.bipartite.sets(G)[0]
-    ##pos = nx.bipartite_layout(G, top)
+    # top = nx.bipartite.sets(G)[0]
+    # pos = nx.bipartite_layout(G, top)
     pos = nx.spring_layout(G)
 
     nx.draw_networkx_nodes(G, pos)
@@ -47,14 +47,20 @@ def drawInstanceMultipleIGraphs(instanceGraphs: dict, folderPath='output/graphs/
 # ================ GraphViz =================
 # https://graphviz.readthedocs.io/en/stable/manual.html
 
+def sanatise(string: str):
+    return string.replace(':', '-').replace('.', 'X')
+
 
 def createGraphVizGraph(IG: tuple[set, set[tuple], dict], graphName: str):
-    dot = graphviz.Digraph(graphName, comment='Instance Graph', format='svg')
+    def sanitiser(string): return string.replace(':', '-').replace('.', 'X')
+    print(graphName)
+    dot = graphviz.Digraph(graphName, filename=graphName,
+                           comment='Instance Graph', format='svg')
     for node in IG[0]:
-        identifier = node
-        label = node
+        identifier = sanitiser(node)
+        label = sanitiser(node)
         dot.node(identifier, label)
-    dot.edges(IG[1])
+    dot.edges(map(lambda t: (sanitiser(t[0]), sanitiser(t[1])), IG[1]))
     return dot
 
 
