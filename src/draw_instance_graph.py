@@ -53,7 +53,6 @@ def sanatise(string: str):
 
 def createGraphVizGraph(IG: tuple[set, set[tuple], dict], graphName: str):
     def sanitiser(string): return string.replace(':', '-').replace('.', 'X')
-    print(graphName)
     dot = graphviz.Digraph(graphName, filename=graphName,
                            comment='Instance Graph', format='svg')
     for node in IG[0]:
